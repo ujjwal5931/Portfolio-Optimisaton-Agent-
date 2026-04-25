@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Optimisation Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-elevated: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #388bfd;
+      --success: #3fb950;
+      --warning: #d29922;
+      --error: #f85149;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(88, 166, 255, 0.08), transparent);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #8b949e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.35rem;
+    }
+
+    .input-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 1rem 1.25rem;
+      font-family: inherit;
+      font-size: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .results {
+      display: none;
+      margin-top: 1.5rem;
+    }
+
+    .results.visible {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .metric-value.risk-low { color: var(--success); }
+    .metric-value.risk-moderate { color: var(--warning); }
+    .metric-value.risk-high { color: var(--error); }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 0.25rem;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .allocation-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .allocation-row {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+
+    .allocation-row:last-child {
+      border-bottom: none;
+    }
+
+    .allocation-ticker {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      min-width: 120px;
+    }
+
+    .allocation-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .allocation-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #79c0ff);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .allocation-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .explanation-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    .explanation-box p {
+      margin-bottom: 0.75rem;
+    }
+
+    .explanation-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .frontier-img-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    .frontier-img-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .error-box {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      color: var(--error);
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .error-box.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Portfolio Optimisation Agent</h1>
+      <p class="subtitle">Describe your investment goal in plain language — get an optimised allocation</p>
+    </header>
+
+    <div class="input-section">
+      <label for="goal">Investment Goal</label>
+      <textarea
+        id="goal"
+        placeholder="e.g. Invest ₹50,000 in Indian stocks with moderate risk for 1 year"
+        autofocus
+        onkeydown="if(event.key==='Enter'&&event.ctrlKey){event.preventDefault();optimize();}"
+      ></textarea>
+      <p class="hint">Include amount, risk level (low/moderate/high), duration, and geography (India/US/global). Ctrl+Enter to submit.</p>
+      <button type="button" class="btn btn-primary" id="submit" onclick="optimize()">
+        Optimise Portfolio
+      </button>
+      <div class="error-box" id="error"></div>
+    </div>
+
+    <div class="results" id="results">
+      <div class="metrics-grid" id="metrics"></div>
+      <div class="section-title">Allocation</div>
+      <div class="allocation-list" id="allocation"></div>
+      <div class="section-title">Explanation</div>
+      <div class="explanation-box" id="explanation"></div>
+      <div class="section-title">Efficient Frontier</div>
+      <div class="frontier-img-wrap">
+        <img id="frontier-img" src="" alt="Efficient frontier plot">
+      </div>
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('results').classList.remove('visible'); document.getElementById('goal').focus();">
+          New Optimisation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+
+    function hideError() {
+      document.getElementById('error').classList.remove('visible');
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('submit');
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<span class="spinner"></span> Optimising…'
+        : 'Optimise Portfolio';
+    }
+
+    async function optimize() {
+      const goal = document.getElementById('goal').value.trim();
+      if (!goal) {
+        showError('Please enter your investment goal.');
+        return;
+      }
+
+      hideError();
+      setLoading(true);
+      document.getElementById('results').classList.remove('visible');
+
+      try {
+        const res = await fetch(`${API_BASE}/optimize-portfolio`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ goal }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.detail || res.statusText || 'Request failed');
+        }
+
+        renderResults(data);
+        document.getElementById('results').classList.add('visible');
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) {
+        showError(err.message || 'Something went wrong. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderResults(data) {
+      const riskClass = `risk-${data.risk_level}`;
+      const metrics = [
+        { label: 'Expected Return', value: `${(data.expected_return * 100).toFixed(2)}%`, cls: '' },
+        { label: 'Volatility', value: `${(data.volatility * 100).toFixed(2)}%`, cls: '' },
+        { label: 'Sharpe Ratio', value: data.sharpe_ratio.toFixed(2), cls: '' },
+        { label: 'Risk Level', value: data.risk_level, cls: riskClass },
+        { label: 'Geography', value: data.geography, cls: '' },
+      ];
+
+      document.getElementById('metrics').innerHTML = metrics
+        .map(m => `
+          <div class="metric-card">
+            <div class="metric-value ${m.cls}">${m.value}</div>
+            <div class="metric-label">${m.label}</div>
+          </div>
+        `)
+        .join('');
+
+      const allocation = Object.entries(data.allocation)
+        .sort((a, b) => b[1] - a[1])
+        .map(([ticker, weight]) => ({
+          ticker,
+          pct: (weight * 100).toFixed(1),
+          width: weight * 100,
+        }));
+
+      document.getElementById('allocation').innerHTML = allocation
+        .map(a => `
+          <div class="allocation-row">
+            <span class="allocation-ticker">${a.ticker}</span>
+            <div class="allocation-bar-wrap">
+              <div class="allocation-bar" style="width: ${a.width}%"></div>
+            </div>
+            <span class="allocation-pct">${a.pct}%</span>
+          </div>
+        `)
+        .join('');
+
+      const escape = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      const explanation = data.explanation || '';
+      document.getElementById('explanation').innerHTML = explanation
+        .split(/\n\n+/)
+        .map(p => `<p>${escape(p).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+
+      const img = document.getElementById('frontier-img');
+      img.src = `${API_BASE}/efficient-frontier.png?t=${Date.now()}`;
+      img.onerror = () => { img.alt = 'Plot not available'; };
+    }
+  </script>
+</body>
+</html>
