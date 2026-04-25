@@ -27,3 +27,4 @@ build/
 
 # Plot outputs (optional; remove if you want to track them)
 efficient_frontier.png
+.DS_Store
